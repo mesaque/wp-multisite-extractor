@@ -35,6 +35,10 @@ endwhile;
 $tables_agg = implode(' ', $table_names);
 $tables_agg .= sprintf(' %susers %susermeta', PREFIX, PREFIX);
 
+if (!file_exists(ABSPATH.'tmp')) {
+    mkdir(ABSPATH.'tmp', 0777, true);
+}
+
 exec("mysqldump --user=".MYSQL_USER." --password=".MYSQL_PASSWORD." --host=".MYSQL_HOST." " .MYSQL_DB_WP." {$tables_agg} > ".ABSPATH."/tmp/".MYSQL_DB_WP.".sql");
 
 exec("sed -i.bak s/wp_usermeta/wp_".SITE_ID."_usermeta/g tmp/".MYSQL_DB_WP.".sql");
