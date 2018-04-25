@@ -1,0 +1,13 @@
+{
+    "name": "apiki/wp-multisite-extractor",
+    "description": "extract a site from multisite installation",
+    "require": {
+        "cheprasov/php-cli-args": "^2.1"
+    },
+    "authors": [
+        {
+            "name": "Mesaque S. Silva",
+            "email": "mesaque.silva@apiki.com"
+        }
+    ]
+}
