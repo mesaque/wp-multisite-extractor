@@ -86,3 +86,9 @@ foreach ($plugin_names as $key => $value):
 endforeach;
 
 exec("cp -rf ".WP_ROOT_PATH."/wp-content/themes/{$theme_names[0]} tmp/wp-content/themes/" );
+
+if (!file_exists(ABSPATH.'tmp/wp-content/uploads/')) {
+    mkdir(ABSPATH.'tmp/wp-content/uploads/', 0777, true);
+}
+
+exec("cp -rf ".WP_ROOT_PATH."/wp-content/uploads/sites/".SITE_ID."/* tmp/wp-content/uploads/" );
