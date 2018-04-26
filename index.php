@@ -68,10 +68,10 @@ if (!file_exists(ABSPATH.'tmp')) {
 
 exec("mysqldump --user=".MYSQL_USER." --password=".MYSQL_PASSWORD." --host=".MYSQL_HOST." " .MYSQL_DB_WP." {$tables_agg} > ".ABSPATH."/tmp/".MYSQL_DB_WP.".sql");
 
-exec("sed -i.bak s/wp_usermeta/wp_".SITE_ID."_usermeta/g tmp/".MYSQL_DB_WP.".sql");
-exec("sed -i.bak s/wp_users/wp_".SITE_ID."_users/g tmp/".MYSQL_DB_WP.".sql");
-exec("sed -i.bak s/wp_capabilities/wp_".SITE_ID."_capabilities/g tmp/".MYSQL_DB_WP.".sql");
-exec("sed -i.bak s/wp_user_level/wp_".SITE_ID."_user_level/g tmp/".MYSQL_DB_WP.".sql");
+exec("sed -i.bak s/".PREFIX."usermeta/".PREFIX.SITE_ID."_usermeta/g tmp/".MYSQL_DB_WP.".sql");
+exec("sed -i.bak s/".PREFIX."users/".PREFIX.SITE_ID."_users/g tmp/".MYSQL_DB_WP.".sql");
+exec("sed -i.bak s/".PREFIX."capabilities/".PREFIX.SITE_ID."_capabilities/g tmp/".MYSQL_DB_WP.".sql");
+exec("sed -i.bak s/".PREFIX."user_level/".PREFIX.SITE_ID."_user_level/g tmp/".MYSQL_DB_WP.".sql");
 
 $wp_core_version = exec("php wp-cli.phar --path=".WP_ROOT_PATH." core version");
 
