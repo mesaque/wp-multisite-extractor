@@ -24,13 +24,40 @@ define( 'WP_ROOT_PATH', $opt->get('wprootpath') );
 
 $conn_mysql = new mysqli( MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB_WP );
 
-$query = sprintf( "SHOW TABLES FROM %s LIKE '%s%d%%'" , MYSQL_DB_WP, PREFIX, SITE_ID );
+$query_tables  = sprintf( "SHOW TABLES FROM %s LIKE '%s%d%%'" , MYSQL_DB_WP, PREFIX, SITE_ID );
+$query_plugins = sprintf( "SELECT * FROM %s.%s%d_options WHERE option_name = 'active_plugins'" , MYSQL_DB_WP, PREFIX, SITE_ID );
+$query_plugins_net = sprintf( "SELECT * FROM %s.%ssitemeta WHERE meta_key = 'active_sitewide_plugins'" , MYSQL_DB_WP, PREFIX );
+$query_themes  = sprintf( "SELECT * FROM %s.%s%d_options WHERE option_name = 'stylesheet'", MYSQL_DB_WP, PREFIX, SITE_ID );
 
-$result = $conn_mysql->query( $query );
-$table_names = array();
+$result = $conn_mysql->query( $query_tables );
+$table_names  = array();
+$plugin_names = array();
+$theme_names  = array();
+
 while ( $row = $result->fetch_row() ):
 	$table_names[] = $row[0];
 endwhile;
+$result = $conn_mysql->query( $query_plugins );
+while ( $row = $result->fetch_row() ):
+	$pl =  unserialize($row[2])[0];
+	$plugin_names[] = explode('/', $pl)[0];
+endwhile;
+$result = $conn_mysql->query( $query_plugins_net );
+while ( $row = $result->fetch_row() ):
+	$pl = unserialize($row[3]);
+	foreach ($pl as $key => $value):
+		if( false !== strpos($key, '/')):
+			$plugin_names[] = explode('/', $key)[0];
+		else:
+			$plugin_names[] = $key;
+		endif;
+	endforeach;
+endwhile;
+$result = $conn_mysql->query( $query_themes );
+while ( $row = $result->fetch_row() ):
+	$theme_names[] = $row[2];
+endwhile;
+
 
 $tables_agg = implode(' ', $table_names);
 $tables_agg .= sprintf(' %susers %susermeta', PREFIX, PREFIX);
@@ -50,24 +77,12 @@ $wp_core_version = exec("php wp-cli.phar --path=".WP_ROOT_PATH." core version");
 
 exec("php wp-cli.phar --path=tmp/ core download  --force --version=" . $wp_core_version);
 
-$url = exec("php wp-cli.phar --path=".WP_ROOT_PATH." site list --field=url --site__in=" . SITE_ID);
-$plugins =  json_decode( exec("php wp-cli.phar --path=".WP_ROOT_PATH." plugin list  --format=json --url=" . $url), true );
-$themes =  json_decode( exec("php wp-cli.phar --path=".WP_ROOT_PATH." theme list  --format=json --url=" . $url), true );
-
-array_walk($plugins, function($value, $i) use (&$plugins) {
-	if( 'inactive' == $value['status'] ) unset( $plugins[$i]);
-});
-
-array_walk($themes, function($value, $i) use (&$themes) {
-	if( 'inactive' == $value['status'] ) unset( $themes[$i]);
-});
-
-foreach ($plugins as $key => $value):
-	if( ! file_exists(WP_ROOT_PATH."/wp-content/plugins/{$value['name']}.php" ) ):
-		exec("cp -rf ".WP_ROOT_PATH."/wp-content/plugins/{$value['name']} tmp/wp-content/plugins/" );
+foreach ($plugin_names as $key => $value):
+	if( ! file_exists(WP_ROOT_PATH."/wp-content/plugins/{$value}" ) ):
+		exec("cp -rf ".WP_ROOT_PATH."/wp-content/plugins/{$value} tmp/wp-content/plugins/" );
 	else:
-		exec("cp -rf ".WP_ROOT_PATH."/wp-content/plugins/{$value['name']}.php tmp/wp-content/plugins/" );
+		exec("cp -rf ".WP_ROOT_PATH."/wp-content/plugins/{$value} tmp/wp-content/plugins/" );
 	endif;
 endforeach;
 
-exec("cp -rf ".WP_ROOT_PATH."/wp-content/themes/{$themes[0]['name']} tmp/wp-content/themes/" );
+exec("cp -rf ".WP_ROOT_PATH."/wp-content/themes/{$theme_names[0]} tmp/wp-content/themes/" );
